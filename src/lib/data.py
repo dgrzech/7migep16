@@ -1,10 +1,13 @@
 import os
 import pydicom
 import numpy as np
-import scipy, scipy.stats
+import scipy, scipy.stats, scipy.ndimage.filters
 import cv2
 import matplotlib.pyplot as plt
 from matplotlib.widgets import Slider
+from skimage import filters
+from skimage.restoration import (denoise_wavelet, estimate_sigma)
+  
 
 
 class Data:
@@ -25,7 +28,7 @@ class Data:
     self.data_spect = self.data_dir + 'SPECT-processed'
     self.data_ct = self.data_dir + 'CT-processed'
 
-    self.import_spect()
+    
 
   def import_spect(self):
     spect_files = os.listdir(self.data_spect);
@@ -41,16 +44,64 @@ class Data:
 
     self.ConstPixelDims = np.shape(data)
     self.ConstPixelSpacing = (float(ds.PixelSpacing[0]), float(ds.PixelSpacing[1]), float(ds.SliceThickness))
-    self.x = np.arange(0., (ConstPixelDims[0])*ConstPixelSpacing[0], ConstPixelSpacing[0])
-    self.y = np.arange(0., (ConstPixelDims[1])*ConstPixelSpacing[1], ConstPixelSpacing[1])
-    self.z = np.arange(0., (ConstPixelDims[2])*ConstPixelSpacing[2], ConstPixelSpacing[2])
+    self.x = np.arange(0., (self.ConstPixelDims[0])*self.ConstPixelSpacing[0], self.ConstPixelSpacing[0])
+    self.y = np.arange(0., (self.ConstPixelDims[1])*self.ConstPixelSpacing[1], self.ConstPixelSpacing[1])
+    self.z = np.arange(0., (self.ConstPixelDims[2])*self.ConstPixelSpacing[2], self.ConstPixelSpacing[2])
 
     #X,Y = np.meshgrid(x,y)
 
-    print np.shape(x);
-    print np.shape(y);
+    print np.shape(self.x);
+    print np.shape(self.y);
 
     print np.shape(data[:,:,2]);
+
+  def noise_removal(self):
+    ''' 
+    # ignore zeros
+    data_tmp = np.reshape(self.data, [np.product(np.shape(self.data)), 1])
+    data_tmp = np.ma.masked_equal(data_tmp,0)
+    data_tmp = data_tmp.compressed()
+    #data_tmp.mean()
+    #mode = float(scipy.stats.mode(data_tmp))
+    #print('Mode: ', mode)
+    mode = 1.
+    self.data = scipy.ndimage.filters.gaussian_filter(self.data, sigma=(mode, mode, mode));
+    '''
+
+    #self.data = self.data[ (self.data <= 10.) ]
+    #self.data = np.ma.masked_array(self.data, mask = (  (self.data < 10)  ) )
+    #self.data = self.data.filled(0.);
+
+    '''
+    crow = len(self.x)/2
+    ccol = len(self.y)/2
+    cslice = len(self.z)/2
+    print(crow, ccol, cslice)
+    f = np.fft.fftn(self.data)
+    fshift = np.fft.fftshift(f)
+    original = np.copy(fshift)
+    x_window = crow-40
+    y_window = ccol-20
+    z_window = cslice-20
+    fshift[crow-x_window:crow+x_window, ccol-y_window:ccol+y_window, cslice-z_window:cslice+z_window] = 0
+    f_ishift= np.fft.ifftshift(original - fshift)
+    self.data = np.abs(np.fft.ifftn(f_ishift))
+    #print(self.data)
+    '''
+
+    #camera = data.camera()
+    #val = filters.threshold_otsu(self.data)
+    #print val
+    #mask = self.data > val
+    #self.data = np.ma.masked_array(self.data, mask = (  (mask==True)  ) )
+    #self.data = self.data.filled(0.);
+
+
+    #self.data = denoise_wavelet(self.data, multichannel=False, convert2ycbcr=False,mode='soft')
+    self.data = scipy.ndimage.filters.median_filter(self.data, size=(1,1,1))
+    #self.data = cv2.GaussianBlur(self.data,(3,3),0)
+    #ret3,th3 = cv2.threshold(self.data,0,255,0)
+    
 
 class Visualiser:
   def __init__(self, Data): # Data class above is a prototype of Data
@@ -61,17 +112,17 @@ class Visualiser:
     #plt.axes().set_aspect('equal', 'datalim')
     #ax.set_cmap(plt.gray())
     #this_plot = ax.pcolormesh(x,y, np.transpose(data[:,:,60]))
-    self.this_plot = ax.imshow(np.transpose(data[:,:,40]))
+    self.this_plot = ax.imshow(np.transpose(Data.data[:,:,40]))
 
     ax_z = fig.add_axes([0.2, 0.95, 0.65, 0.03])
-    self.slider_z = Slider(ax_z, 'Z-Slice', 0, data.shape[2]-1, valinit=40, valfmt='%i')
+    self.slider_z = Slider(ax_z, 'Z-Slice', 0, Data.data.shape[2]-1, valinit=40, valfmt='%i')
     self.slider_z.on_changed(self.update)
 
     plt.show()
   def update(self, val):
       i = int(self.slider_z.val)
-      im = self.spect_data[:,:,i]
-      self.this_plot_spect.set_data(np.transpose(im))
+      im = self.Data.data[:,:,i]
+      self.this_plot.set_data(np.transpose(im))
       self.fig.canvas.draw_idle()
 
 

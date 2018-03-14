@@ -1,4 +1,9 @@
 from src.lib import data
 
 
-data_class = data.Data()
+Spect = data.Data()
+Spect.import_spect()
+Spect.noise_removal()
+
+Visualiser = data.Visualiser(Spect);
+

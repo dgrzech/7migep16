@@ -1,2 +1,3 @@
 pip install pydicom
 pip install opencv-python
+pip install scikit-image
