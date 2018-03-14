@@ -34,16 +34,16 @@ class Data:
     print(ds.dir()) # PixelSpacing, PixelData, PixelRepresentation, pixel_array
     #print(ds.pixel_array)
     data = ds.pixel_array
-    self.spect_data = data
+    self.data = data
     #print np.shape(np.reshape(data, [5548800, 1]))
     #print scipy.stats.mode(np.reshape(data, [5548800, 1]))
     #ModeResult(mode=array([[0]], dtype=uint16), count=array([[2069750]]))
 
-    ConstPixelDims = np.shape(data)
-    ConstPixelSpacing = (float(ds.PixelSpacing[0]), float(ds.PixelSpacing[1]), float(ds.SliceThickness))
-    x = np.arange(0., (ConstPixelDims[0])*ConstPixelSpacing[0], ConstPixelSpacing[0])
-    y = np.arange(0., (ConstPixelDims[1])*ConstPixelSpacing[1], ConstPixelSpacing[1])
-    z = np.arange(0., (ConstPixelDims[2])*ConstPixelSpacing[2], ConstPixelSpacing[2])
+    self.ConstPixelDims = np.shape(data)
+    self.ConstPixelSpacing = (float(ds.PixelSpacing[0]), float(ds.PixelSpacing[1]), float(ds.SliceThickness))
+    self.x = np.arange(0., (ConstPixelDims[0])*ConstPixelSpacing[0], ConstPixelSpacing[0])
+    self.y = np.arange(0., (ConstPixelDims[1])*ConstPixelSpacing[1], ConstPixelSpacing[1])
+    self.z = np.arange(0., (ConstPixelDims[2])*ConstPixelSpacing[2], ConstPixelSpacing[2])
 
     #X,Y = np.meshgrid(x,y)
 
@@ -52,12 +52,16 @@ class Data:
 
     print np.shape(data[:,:,2]);
 
+class Visualiser:
+  def __init__(self, Data): # Data class above is a prototype of Data
+    self.Data = Data;
+
     fig, ax = plt.subplots()
     self.fig = fig
     #plt.axes().set_aspect('equal', 'datalim')
     #ax.set_cmap(plt.gray())
     #this_plot = ax.pcolormesh(x,y, np.transpose(data[:,:,60]))
-    self.this_plot_spect = ax.imshow(np.transpose(data[:,:,40]))
+    self.this_plot = ax.imshow(np.transpose(data[:,:,40]))
 
     ax_z = fig.add_axes([0.2, 0.95, 0.65, 0.03])
     self.slider_z = Slider(ax_z, 'Z-Slice', 0, data.shape[2]-1, valinit=40, valfmt='%i')
