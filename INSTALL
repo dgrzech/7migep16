@@ -1,1 +1,2 @@
 pip install pydicom
+pip install opencv-python

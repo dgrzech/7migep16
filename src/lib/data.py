@@ -1,5 +1,11 @@
 import os
 import pydicom
+import numpy as np
+import scipy, scipy.stats
+import cv2
+import matplotlib.pyplot as plt
+from matplotlib.widgets import Slider
+
 
 class Data:
   def __init__(self, dataset_day=1, scan_number=1):
@@ -24,4 +30,45 @@ class Data:
   def import_spect(self):
     spect_files = os.listdir(self.data_spect);
     spect_file = self.data_spect + '/' + spect_files[0];
+    ds = pydicom.dcmread(spect_file)
+    print(ds.dir()) # PixelSpacing, PixelData, PixelRepresentation, pixel_array
+    #print(ds.pixel_array)
+    data = ds.pixel_array
+    self.spect_data = data
+    #print np.shape(np.reshape(data, [5548800, 1]))
+    #print scipy.stats.mode(np.reshape(data, [5548800, 1]))
+    #ModeResult(mode=array([[0]], dtype=uint16), count=array([[2069750]]))
+
+    ConstPixelDims = np.shape(data)
+    ConstPixelSpacing = (float(ds.PixelSpacing[0]), float(ds.PixelSpacing[1]), float(ds.SliceThickness))
+    x = np.arange(0., (ConstPixelDims[0])*ConstPixelSpacing[0], ConstPixelSpacing[0])
+    y = np.arange(0., (ConstPixelDims[1])*ConstPixelSpacing[1], ConstPixelSpacing[1])
+    z = np.arange(0., (ConstPixelDims[2])*ConstPixelSpacing[2], ConstPixelSpacing[2])
+
+    #X,Y = np.meshgrid(x,y)
+
+    print np.shape(x);
+    print np.shape(y);
+
+    print np.shape(data[:,:,2]);
+
+    fig, ax = plt.subplots()
+    self.fig = fig
+    #plt.axes().set_aspect('equal', 'datalim')
+    #ax.set_cmap(plt.gray())
+    #this_plot = ax.pcolormesh(x,y, np.transpose(data[:,:,60]))
+    self.this_plot_spect = ax.imshow(np.transpose(data[:,:,40]))
+
+    ax_z = fig.add_axes([0.2, 0.95, 0.65, 0.03])
+    self.slider_z = Slider(ax_z, 'Z-Slice', 0, data.shape[2]-1, valinit=40, valfmt='%i')
+    self.slider_z.on_changed(self.update)
+
+    plt.show()
+  def update(self, val):
+      i = int(self.slider_z.val)
+      im = self.spect_data[:,:,i]
+      self.this_plot_spect.set_data(np.transpose(im))
+      self.fig.canvas.draw_idle()
+
+
     
