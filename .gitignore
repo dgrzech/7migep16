@@ -1,0 +1,5 @@
+# build directory
+build
+
+# remote sync config file
+.remote-sync.json

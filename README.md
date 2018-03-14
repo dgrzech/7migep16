@@ -1,5 +1,4 @@
-# plants
-Plants Project - Computer vision for plants (SPECT + CT)
+# overview
+7migep16 medical imaging research project 1
 
-# running
-run commands from INSTALL 
+code for analysis of biodistribution of radiometals in young, leafy plants--computer vision for spect + ct
