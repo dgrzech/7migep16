@@ -88,7 +88,24 @@ class Data:
     self.data = np.abs(np.fft.ifftn(f_ishift))
     #print(self.data)
     '''
+    '''f = np.fft.fftn(self.data)
+    #k=[ [0.,0.,0.,0.,0.],[0.,0.,0.,0.,0.],[0.,0.,1.,0.,0.],[0.,0.,0.,0.,0.],[0.,0.,0.,0.,0.] ]
+    k_size = 5
+    k = np.zeros(shape=(k_size,k_size,k_size), dtype=float)
+    k_mid = np.int(np.ceil(float(k_size)/2.)-1.)
+    k[k_mid,k_mid,k_mid] = 1./9.
+    print k
+    f_conv = np.ones(shape=np.shape(f), dtype=complex)
+    f_conv_real = scipy.ndimage.filters.convolve(np.real(f), k, f_conv.real, 'constant')
+    f_conv_imag = scipy.ndimage.filters.convolve(np.imag(f), k, f_conv.imag, 'constant')
 
+    mode = 0.5
+    f_conv_real = scipy.ndimage.filters.gaussian_filter(np.real(f), sigma=(mode, mode, mode), output=f_conv.real)
+    f_conv_imag = scipy.ndimage.filters.gaussian_filter(np.imag(f), sigma=(mode, mode, mode), output=f_conv.imag)
+    
+    #f_conv = f_conv_real
+    #f_conv.imag = f_conv_imag
+    self.data = np.abs(np.fft.ifftn(f_conv))
     #camera = data.camera()
     #val = filters.threshold_otsu(self.data)
     #print val
@@ -101,7 +118,15 @@ class Data:
     self.data = scipy.ndimage.filters.median_filter(self.data, size=(1,1,1))
     #self.data = cv2.GaussianBlur(self.data,(3,3),0)
     #ret3,th3 = cv2.threshold(self.data,0,255,0)
-    
+    '''
+    #self.data = np.ma.masked_array(self.data, mask = (  (self.data<=0)  ) )
+    #self.data = self.data.filled(0.)
+    #th3 = cv2.adaptiveThreshold(self.data,255,cv2.ADAPTIVE_THRESH_GAUSSIAN_C,\
+    #        cv2.THRESH_BINARY,11,2)
+    fig = plt.figure()
+    reshapedData = np.reshape(self.data, [np.product(np.shape(self.data)), 1] )
+    plt.hist(reshapedData)
+    #plt.show()
 
 class Visualiser:
   def __init__(self, Data): # Data class above is a prototype of Data
