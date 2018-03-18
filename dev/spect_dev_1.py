@@ -1,4 +1,15 @@
 from src.lib import data
 
 
-data_class = data.Data()
+Spect = data.Data()
+Spect.import_spect()
+Spect.histogram_analysis()
+Spect.noise_removal()
+
+Spect.restore_original_data()
+Visualiser = data.Visualiser(Spect)
+
+
+Spect.restore_calculated_data()
+Visualiser = data.Visualiser(Spect)
+
