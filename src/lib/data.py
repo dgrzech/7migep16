@@ -122,7 +122,7 @@ class Data:
     self.segment = np.copy(np.reshape(self.segment, np.shape(self.data)));
 
     
-    self.comp = ConnectedComponents(self.segment)
+    self.comp = ConnectedComponents3D(self.segment)
     self.main_comp = self.comp.largest_connected_component()
 
     '''
@@ -142,7 +142,7 @@ class Data:
     #self.data = np.copy(self.main_comp)
 
 
-class ConnectedComponents:
+class ConnectedComponents3D:
 
   def __init__(self, binary):
     self.labels = []
