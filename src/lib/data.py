@@ -26,15 +26,15 @@ class PlantComponents3D(ConnectedComponents3D):
         for label in self.labels:
           mask = (self.binary_labelling==label)
           norm_val = np.sum(  data[mask]   )
-          print(norm_val)
+          #print(norm_val)
           tmp = data[self.binary_labelling==label]
           tmp = tmp.astype(float)
           tmp = (np.divide( tmp , float(norm_val)) )*100.
-          print tmp
+          #print tmp
           new_data[self.binary_labelling==label] = np.copy(tmp)
-        print('Testing')
-        print np.max(new_data)
-        print np.min(new_data)
+        #print('Testing')
+        #print np.max(new_data)
+        #print np.min(new_data)
         return new_data
 
 class Data:
